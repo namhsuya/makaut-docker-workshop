@@ -245,7 +245,7 @@ docker login --username=<USER>
 Save a Docker container as an image and deposit on your personal Docker hub account
 ```
 docker commit <CONTAINER ID> <USER>/<IMAGE NAME>
-docker commit CSBL02 anicolau/csbl-ourse
+docker commit MAKAUT2 ayushmanb/vfdb_blast_img
 ```
 
 Check out the new image from Docker container
@@ -258,7 +258,7 @@ Tag and submit the new image for the Docker hub
 docker tag <NEW IMAGE ID> <USER>/<IMAGE NAME>
 docker push <USER>/<IMAGE NAME>
   
-docker tag <NEW IMAGE ID> anicolau/csbl-course
+docker tag <NEW IMAGE ID> ayushmanb/vfdb_blast_img
 docker push ayushmanb/vfdb_blast_img
 ```
 
