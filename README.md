@@ -314,6 +314,6 @@ Create a conda environment and install packages from environment.yaml file
 
 Conda deactivation
 ```
-(rnaseq) root@a95e814ebc80:/# conda deactivate
+(ncbi-blast) root@a95e814ebc80:/# conda deactivate
 (base) root@a95e814ebc80:/#
 ```
