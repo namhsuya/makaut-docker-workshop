@@ -1,6 +1,7 @@
 # Bioinformatics analyses using Docker and Conda environment
 
-This protocol was developed for creating and configuring Docker containers and Conda environment for bioinformatics analyses.
+This protocol was developed for creating and configuring Docker containers and Conda environment for bioinformatics analyses for the workshop titled:
+[Docker for Reproducible Bioinformatics Analysis](https://www.youtube.com/watch?v=3M98X5m4o7o)
 
 ## What is necessary to run this protocol:
 - A machine running any operating system (such as Linux, Windows or macOS) and Docker App
