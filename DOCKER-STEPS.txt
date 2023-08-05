@@ -1,0 +1,170 @@
+## 0. Check Docker Version
+docker -v 
+
+## 1. Pull miniconda3 image and manually analyse data (pull)
+
+docker pull continuumio/miniconda3
+docker run -i -t -d --name MAKAUT1 continuumio/miniconda3 /bin/bash
+
+## 1.1. Demonstrate docker container manipulation (stop/start)
+
+docker ps
+docker container stop MAKAUT1
+docker ps
+docker ps -a
+docker container start MAKAUT1
+docker exec -it MAKAUT1 /bin/bash
+docker container stop MAKAUT1
+docker rm MAKAUT1
+
+## 1.2. Manually analyze data (mount localfilesystem: -v host:docker)
+
+# Open Ubuntu-22.04
+cd ~
+docker run -i -t -d -v $PWD/workshop-material/:/data/ --name MAKAUT1 continuumio/miniconda3 /bin/bash
+docker exec -it MAKAUT1 /bin/bash
+cd data/
+conda install -c bioconda blast=2.2.31 -y
+mkdir db
+makeblastdb -in VFDB_setB_nt.fas -dbtype nucl -out db/vfdb2231
+time blastn -task blastn -query cores_nonhuman_essential_virulent_Pseudomonas.fasta -db vfdb2231 -out blastn2_2_31.txt -outfmt 6 -num_threads 11
+
+## 1.3. Use conda environment to create separate environment with different version of tools
+
+conda create --name blast2_14_0 -y
+conda activate blast2_14_0
+blastn --version
+which blastn
+echo $PATH
+conda install -c conda-forge -c bioconda blast=2.14 -y
+makeblastdb -in VFDB_setB_nt.fas -dbtype nucl -out db/vfdb2140
+time blastn -task blastn -query cores_nonhuman_essential_virulent_Pseudomonas.fasta -db db/vfdb2140 -out blastn2_14_0.txt -outfmt 6 -num_threads 11
+
+## Show difference
+head -n2 blastn2_14_0.txt 
+head -n2 blastn2_2_31.txt
+
+
+## 2. Create custom Dockerfile for the same analysis (latest blastn version)
+
+## 2.1. Create bash script to automate blasting against VFDB
+
+#!/bin/bash
+# Check if all required arguments are provided
+if [ $# -ne 4 ]; then
+    echo "Usage: $0 <input_fasta_file1> <output_db_path> <input_fasta_file2> <output_txt_file>"
+    exit 1
+fi
+# Assign arguments to variables
+input_fasta_file1=$1
+output_db_path=$2
+input_fasta_file2=$3
+output_txt_file=$4
+# Step 1: Create BLAST database
+makeblastdb -in "$input_fasta_file1" -dbtype nucl -out "$output_db_path"
+# Step 2: Run BLAST
+time blastn -task blastn -query "$input_fasta_file2" -db "$output_db_path" -out "$output_txt_file" -outfmt 6 -num_threads 11
+
+## 2.2. Use environment.yaml for defining conda environment
+## Create env.yaml
+name: base
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - blast=2.2.31
+
+## 2.3. Dockerize the previous pipeline
+
+## Create Dockerfile
+
+# Base image
+FROM continuumio/miniconda3
+# Install required software
+RUN apt-get update
+# Install conda updates
+RUN conda update conda && \
+    conda update --all
+# Create /data directory
+RUN mkdir /data
+# Copy the run_blast.sh script into the container
+COPY env.yaml /data/env.yaml
+# Install blast 
+# RUN conda install -c conda-forge -c bioconda blast=2.2.31 -y
+# RUN conda env create -n blast -f /data/env.yaml
+# SHELL ["conda", "run", "-n", "blast", "/bin/bash", "-c"]
+RUN conda env update -n base -f /data/env.yaml
+# Copy the run_blast.sh script into the container
+COPY run_blast.sh /data/
+# Give execute permission to the script
+RUN chmod +x /data/run_blast.sh
+# Set the working directory to /data
+WORKDIR /data
+# Set the entrypoint
+ENTRYPOINT ["/bin/bash", "/data/run_blast.sh"]
+
+## Create docker image
+## From WSL2: ~/makaut/workshop-
+docker build -t vfdb_blast_img .
+docker images
+
+## 2.4. Docker analyze data (mount localfilesystem: -v host:docker)
+
+docker run -v $PWD/:/data/ vfdb_blast_img VFDB_setB_nt.fas db/vfdb2231new cores_nonhuman_essential_virulent_Pseudomonas.fasta blastn2_2_31_new.txt
+
+## 2.5. Save docker image as a file on local system for shipping
+docker save -o wrkshp.tar vfdb_blast_img
+
+
+## Intermediate
+cd comparison
+docker build -t summarize_blast_img .
+
+
+
+## 3. Pull docker image for comparison (DockerHub)
+## 3.1. Login
+docker login
+
+## 3.2. Tag with username
+docker tag summarize_blast_img ayushmanb/summarize_blast_img:latest
+docker push ayushmanb/summarize_blast_img:latest
+
+## 3.3. Docker compare all the data (mount localfilesystem: -v host:docker)
+cd ~/makaut/workshop-material
+docker run -it --name SUMMARIZER -v $PWD/:/data/ summarize_blast_img blastn2_2_31.txt blastn2_14_0.txt blastn2_2_31_new.txt venn_diagram1.png venn_diagram2.png blastn_summary_report.pdf
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
