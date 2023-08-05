@@ -16,6 +16,7 @@ This protocol was developed for creating and configuring Docker containers and C
 6. [Creating a Docker container from scratch](#creating-a-docker-container-from-scratch)
 7. [Download a Linux official image from the Docker hub](#download-a-linux-official-image-from-the-docker-hub)
 8. [Minimum commands to manage Docker images and containers](#minimum-commands-to-manage-docker-images-and-containers)
+9. [Following the BLAST tutorial described in the webinar](#blastn-live-demo-tutorial)
 
 ## Docker installation
 
@@ -318,3 +319,8 @@ Conda deactivation
 (ncbi-blast) root@a95e814ebc80:/# conda deactivate
 (base) root@a95e814ebc80:/#
 ```
+
+
+## BLASTn Live Demo Tutorial
+
+Follow the instructions provided in the ```DOCKER-STEPS``` file to reproduce the live-demo results.
